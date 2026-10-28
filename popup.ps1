@@ -199,6 +199,11 @@ function New-FlatButton([string]$text, [string]$background, [string]$foreground,
 $themeName = 'light'
 if ($dark) { $themeName = 'dark' }
 Trace ('theme=' + $themeName)
+# Soft drop shadow: the window keeps a transparent margin around the card so
+# the blur is not clipped, then positions itself so the card stays 24px from
+# the right edge and 7px above the taskbar.
+$shadowMargin = 24
+
 $window = New-Object System.Windows.Window
 $window.Title = Pick $payload.windowTitle 'DSH notification'
 $window.WindowStyle = 'None'
@@ -211,7 +216,7 @@ $window.Topmost = $true
 $window.ShowActivated = $false
 $window.ResizeMode = 'NoResize'
 $window.SizeToContent = 'Height'
-$window.Width = 384
+$window.Width = 384 + ($shadowMargin * 2)
 $window.FontFamily = 'Segoe UI, Microsoft YaHei UI'
 
 $card = New-Object System.Windows.Controls.Border
@@ -221,6 +226,19 @@ $card.BorderBrush = Brush $border
 $card.BorderThickness = New-Object System.Windows.Thickness(1)
 $card.Padding = New-Object System.Windows.Thickness(0)
 $window.Content = $card
+
+# The card owns the shadow margin; the transparent gap lets the blur render and
+# the card keeps its 384px width. The window itself is only the shadow frame.
+$card.Margin = New-Object System.Windows.Thickness($shadowMargin, $shadowMargin, $shadowMargin, 7)
+$shadow = New-Object System.Windows.Media.Effects.DropShadowEffect
+$shadow.Color = [System.Windows.Media.Color]::FromArgb(255, 0, 0, 0)
+$shadow.BlurRadius = 18
+$shadow.ShadowDepth = 4
+$shadow.Direction = 270
+$shadow.Opacity = 0.3
+if ($dark) { $shadow.Opacity = 0.45 }
+$shadow.RenderingBias = 'Performance'
+$card.Effect = $shadow
 
 # The accent indicator breathes: a long, centered bar on the top edge by
 # default, or a dot beside the kicker. Only its opacity animates, never the
@@ -502,8 +520,8 @@ $controlWatch.Add_Tick({
   Trace ('control-replace=' + $title.Text + ' | ' + $body.Text)
   # The copy may be taller or shorter now; keep the card on the corner.
   $window.UpdateLayout()
-  $window.Left = $script:workArea.Right - $window.ActualWidth - 24
-  $window.Top  = $script:workArea.Bottom - $window.ActualHeight - 7
+  $window.Left = $script:workArea.Right - $window.ActualWidth
+  $window.Top  = $script:workArea.Bottom - $window.ActualHeight
   # A fresh card restarts its countdown unless the person is still reading it.
   if (-not $script:hovered) {
     $timer.Stop()
@@ -516,8 +534,10 @@ $window.Add_Loaded({
   Trace 'loaded'
   $script:workArea = [System.Windows.SystemParameters]::WorkArea
   # Grow the auto-sized card by 30%; the star row then hands every extra pixel
-  # to the summary body instead of leaving a gap under the buttons.
-  $baseHeight = [double]$window.ActualHeight
+  # to the summary body instead of leaving a gap under the buttons. The window
+  # height includes the shadow margins (24px top/sides, 7px bottom), so subtract
+  # them to get the card's own height.
+  $baseHeight = [double]$window.ActualHeight - $shadowMargin - 7
   Trace ('height-base=' + $baseHeight)
   # Give the card itself the new height; the window keeps SizeToContent=Height
   # so it follows the card, and the star row expands into the added space.
@@ -525,10 +545,10 @@ $window.Add_Loaded({
   $body.MaxHeight = 1000
   $window.UpdateLayout()
   Trace ('height-card=' + $window.ActualHeight)
-  $window.Left = $script:workArea.Right - $window.ActualWidth - 24
-  # Keep the old 24px gap to the screen edge, but only 7px above the taskbar
-  # (30% of the previous 24px bottom gap).
-  $window.Top  = $script:workArea.Bottom - $window.ActualHeight - 7
+  # The window's right edge sits on the screen edge and its bottom edge on the
+  # taskbar top; the card keeps 24px from the right and 7px above the taskbar.
+  $window.Left = $script:workArea.Right - $window.ActualWidth
+  $window.Top  = $script:workArea.Bottom - $window.ActualHeight
   Trace ('anchor=' + $window.Left + ',' + $window.Top)
   $timer.Start()
   if ($controlPath -ne '') { $controlWatch.Start() }
