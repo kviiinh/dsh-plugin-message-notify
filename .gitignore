@@ -1,0 +1,12 @@
+# 生成物：临时载荷、结果与 trace 文件
+.test/*
+!.test/drive.mjs
+!.test/ui-check.ps1
+!.test/settings.mjs
+
+# 依赖与临时日志
+node_modules/
+*.log
+payload.json
+result*.json
+trace*.log

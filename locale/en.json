@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "description": "Shows a card in the bottom-right corner when DSH has a reply, an approval request, a question or a plan confirmation: workspace, conversation topic and a short summary, with View and Close buttons and an automatic close. The settings page adjusts when cards appear, both close delays (DSH in front vs. away), the light/dark theme and the dot colour, and can fire a test card. Use the plugin toggle to switch reminders off.",
+    "title": "Reply Popup"
+  }
+}
