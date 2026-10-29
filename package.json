@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-message-notify",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "DSH 有回复、授权请求、提问或计划确认时在屏幕右下角弹卡片：显示工作区、对话主题与摘要，带「查看」「关闭」按钮，收起时长、提醒时机、主题与圆点颜色都可调。",
   "type": "module",
   "main": "index.js",
