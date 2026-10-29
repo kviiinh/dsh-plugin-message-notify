@@ -123,6 +123,7 @@ const DEFAULT_SETTINGS = Object.freeze({
   indicator: 'bar',
   dotColor: '',
   testText: '',
+  sound: true,
 })
 
 /** Theme choices the helper understands. */
@@ -231,6 +232,7 @@ function normalizeSettings(raw) {
   if (typeof source.testText === 'string') {
     settings.testText = source.testText.trim().slice(0, SUMMARY_LIMIT)
   }
+  if (typeof source.sound === 'boolean') settings.sound = source.sound
   return settings
 }
 
@@ -313,6 +315,9 @@ function settingsProblem(body) {
     if (typeof body.testText !== 'string' || body.testText.length > SUMMARY_LIMIT) {
       return `testText must be a string of at most ${SUMMARY_LIMIT} characters.`
     }
+  }
+  if (typeof body.sound !== 'undefined' && typeof body.sound !== 'boolean') {
+    return 'sound must be a boolean.'
   }
   return ''
 }
@@ -503,6 +508,7 @@ export function apply(ctx, config = {}) {
     themeMode: config.themeMode,
     indicator: config.indicator,
     dotColor: config.dotColor,
+    sound: config.sound,
   })
   void loadSettings().then((stored) => {
     if (stored !== null) Object.assign(settings, stored)
@@ -718,6 +724,7 @@ export function apply(ctx, config = {}) {
       themes: THEMES,
       indicator: settings.indicator,
       dotColor: settings.dotColor,
+      sound: settings.sound,
       tracePath,
       ...fields,
     }

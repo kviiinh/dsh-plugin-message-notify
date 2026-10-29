@@ -156,6 +156,12 @@ if ($dotColor -match '^#[0-9a-fA-F]{6}$') {
 $indicator = [string](Pick $payload.indicator 'bar')
 if ($indicator -ne 'dot') { $indicator = 'bar' }
 
+# The settings page can silence a card; a missing field keeps the sound on.
+$sound = $true
+if ($null -ne $payload.PSObject.Properties['sound'] -and $payload.sound -eq $false) {
+  $sound = $false
+}
+
 function New-FlatTemplate([string]$hoverColor) {
   $xaml = @"
 <ControlTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -554,6 +560,23 @@ $window.Add_Loaded({
   if ($controlPath -ne '') { $controlWatch.Start() }
   if ($watchReturn -and -not $dshWasFocused) { $returnWatch.Start() }
   try { [void]$pulseStory.Begin($window) } catch { Trace ('pulse-failed: ' + $_.Exception.Message) }
+  # The settings page can turn the sound off. Play it once, when the card shows;
+  # a same-card replacement updates the text without a second chime.
+  if ($sound) {
+    try {
+      $notifyWav = Join-Path $env:SystemRoot 'Media\Windows Notify System Generic.wav'
+      if (Test-Path -LiteralPath $notifyWav) {
+        $script:soundPlayer = New-Object System.Media.SoundPlayer $notifyWav
+        $script:soundPlayer.Play()
+        Trace 'sound=notify-generic'
+      } else {
+        [System.Media.SystemSounds]::Asterisk.Play()
+        Trace 'sound=asterisk'
+      }
+    } catch {
+      Trace ('sound-failed: ' + $_.Exception.Message)
+    }
+  }
 })
 
 $window.Add_Closed({

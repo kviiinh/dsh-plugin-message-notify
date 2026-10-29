@@ -801,6 +801,7 @@ window.__ModuleLoader__.load({
         indicator: settings.indicator === 'dot' ? 'dot' : 'bar',
         dotColor: typeof settings.dotColor === 'string' ? settings.dotColor : '',
         testText: typeof settings.testText === 'string' ? settings.testText : '',
+        sound: settings.sound !== false,
         timeout: String(settings.timeoutSeconds),
         focusedTimeout: String(settings.focusedTimeoutSeconds),
       }
@@ -814,6 +815,7 @@ window.__ModuleLoader__.load({
         draft.indicator !== saved.indicator ||
         draft.dotColor !== saved.dotColor ||
         draft.testText !== saved.testText ||
+        draft.sound !== saved.sound ||
         Number(draft.timeout) !== saved.timeoutSeconds ||
         Number(draft.focusedTimeout) !== saved.focusedTimeoutSeconds
       )
@@ -904,6 +906,7 @@ window.__ModuleLoader__.load({
             indicator: draft.indicator,
             dotColor: draft.dotColor,
             testText: draft.testText,
+            sound: draft.sound,
             timeoutSeconds: seconds,
             focusedTimeoutSeconds: focusedSeconds,
           }),
@@ -1083,6 +1086,23 @@ window.__ModuleLoader__.load({
             value: draft.dotColor,
             disabled: busy,
             onChange: (value) => edit({ dotColor: value }),
+          }),
+        ),
+        h(
+          FieldRow,
+          {
+            label: '提示音',
+            tip: '卡片出现时播放 Windows 的「通知」提示音；关掉后静音。保存后下一张卡片生效，同一张卡片的替换不会重复响。',
+            flip: true,
+          },
+          h(Dropdown, {
+            value: draft.sound ? 'on' : 'off',
+            disabled: busy,
+            onChange: (value) => edit({ sound: value === 'on' }),
+            options: [
+              { value: 'on', label: '开启' },
+              { value: 'off', label: '关闭' },
+            ],
           }),
         ),
         h(
